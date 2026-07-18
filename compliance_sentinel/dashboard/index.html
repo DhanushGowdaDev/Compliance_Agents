@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compliance Sentinel — DPA Risk Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+:root{
+  --bg:#080d1a;--surface:#0f1629;--card:#141c33;--border:#1e2d4a;
+  --accent:#00d4aa;--accent2:#3b82f6;--red:#ef4444;--amber:#f59e0b;--green:#10b981;
+  --text:#e2e8f0;--muted:#64748b;--subtle:#1e2d4a;
+  font-family:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── Layout ── */
+.app{display:flex;flex-direction:column;min-height:100vh;max-height:100vh;overflow:hidden}
+
+/* ── Header ── */
+header{background:rgba(15,22,41,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;z-index:10}
+.logo{font-size:1.4rem;font-weight:800;letter-spacing:-.03em;text-shadow:0 2px 10px rgba(0,212,170,0.2)}
+.logo span{color:var(--accent)}
+.contract-selector{margin-left:auto;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:.4rem .75rem;border-radius:.5rem;font-family:inherit;font-size:.85rem;cursor:pointer;outline:none;transition:border-color 0.2s}
+select:focus{border-color:var(--accent)}
+.risk-badge{padding:.3rem .9rem;border-radius:9999px;font-size:.8rem;font-weight:700;letter-spacing:.03em;box-shadow:0 0 15px rgba(0,0,0,0.2)}
+.risk-high{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.4);box-shadow:0 0 15px rgba(239,68,68,.15)}
+.risk-med{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.4);box-shadow:0 0 15px rgba(245,158,11,.15)}
+.risk-low{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.4);box-shadow:0 0 15px rgba(16,185,129,.15)}
+
+/* ── Stats bar ── */
+.stats-bar{display:flex;gap:1rem;padding:1rem 2rem;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;z-index:9}
+.stat{background:linear-gradient(180deg, var(--card) 0%, rgba(20,28,51,0.6) 100%);border:1px solid var(--border);border-radius:.75rem;padding:1rem 1.25rem;min-width:130px;flex:1;max-width:200px;text-align:center;transition:all .3s cubic-bezier(0.25, 0.8, 0.25, 1);box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+.stat:hover{transform:translateY(-3px);box-shadow:0 8px 15px rgba(0,0,0,0.3);border-color:var(--subtle)}
+.stat-n{font-size:2rem;font-weight:800;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,0.5)}
+.stat-l{font-size:.7rem;color:var(--muted);margin-top:.4rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.c-red{color:#f87171}.c-amber{color:#fbbf24}.c-green{color:#34d399}.c-blue{color:#60a5fa}
+
+/* ── Main grid ── */
+main{flex:1;display:grid;grid-template-columns:1fr 360px;grid-template-rows:minmax(0, 1fr) auto;gap:0;overflow:hidden;position:relative}
+
+/* ── Risk Map ── */
+.risk-map-section{grid-column:1;grid-row:1;padding:1.5rem 1.5rem 0;display:flex;flex-direction:column;gap:.75rem;height:100%;min-height:350px}
+.section-title{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+#risk-plot{background:linear-gradient(to bottom right, var(--card), rgba(15,22,41,0.5));border:1px solid var(--border);border-radius:.75rem;flex:1;box-shadow:inset 0 2px 20px rgba(0,0,0,0.2)}
+
+/* ── Sidebar ── */
+.sidebar{grid-column:2;grid-row:1/3;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;box-shadow:-4px 0 20px rgba(0,0,0,0.15);z-index:5}
+.sidebar-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface)}
+.stab{flex:1;padding:1rem .75rem;text-align:center;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;letter-spacing:.05em}
+.stab:hover{color:var(--text);background:rgba(255,255,255,0.02)}
+.stab.active{color:var(--accent);border-bottom-color:var(--accent);background:linear-gradient(to top, rgba(0,212,170,0.08) 0%, transparent 100%)}
+.sidebar-body{flex:1;overflow-y:auto;padding:1.25rem 1rem}
+
+/* ── Clause list ── */
+.clause-cards{display:flex;flex-direction:column;gap:.85rem}
+
+/* ── Clause card ── */
+.clause-card{background:var(--card);border:1px solid var(--border);border-radius:.75rem;padding:1rem;cursor:pointer;transition:all .2s cubic-bezier(0.25, 0.8, 0.25, 1);position:relative;overflow:hidden;box-shadow:0 2px 5px rgba(0,0,0,0.2)}
+.clause-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:transparent;transition:background 0.2s}
+.clause-card:hover{border-color:var(--muted);transform:translateY(-2px);box-shadow:0 6px 12px rgba(0,0,0,0.3)}
+.clause-card.selected{border-color:var(--accent);background:linear-gradient(135deg, rgba(0,212,170,0.08) 0%, rgba(20,28,51,0.5) 100%);box-shadow:0 0 0 1px rgba(0,212,170,0.2), 0 4px 15px rgba(0,0,0,0.3)}
+.clause-card.selected::before{background:var(--accent)}
+.cc-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem}
+.cc-id{font-size:.7rem;font-weight:700;color:var(--muted);font-family:monospace}
+.rating-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cc-agent{font-size:.65rem;color:var(--muted);margin-left:auto;font-family:monospace}
+.cc-reason{font-size:.75rem;color:#94a3b8;line-height:1.4;margin-bottom:.6rem}
+.cc-bench{display:inline-block;font-size:.65rem;font-weight:700;padding:.15rem .45rem;border-radius:.3rem;text-transform:uppercase;letter-spacing:.05em}
+.bench-agg{background:rgba(239,68,68,.15);color:#f87171}
+.bench-std{background:rgba(59,130,246,.15);color:#93c5fd}
+.bench-len{background:rgba(16,185,129,.15);color:#34d399}
+.bench-na{background:var(--subtle);color:var(--muted)}
+
+/* ── Detail panel ── */
+.detail-panel{grid-column:1;grid-row:2;padding:1.5rem;overflow-y:auto;max-height:45vh;position:relative}
+.detail-panel::before{content:'';position:absolute;top:0;left:1.5rem;right:1.5rem;height:1px;background:linear-gradient(90deg, transparent, var(--border), transparent)}
+.detail-card{background:linear-gradient(to bottom, var(--surface), var(--card));border:1px solid var(--border);border-radius:1rem;padding:1.5rem;display:grid;gap:1.25rem;box-shadow:0 10px 30px rgba(0,0,0,0.25)}
+.detail-section{display:flex;flex-direction:column;gap:.5rem}
+.ds-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+.ds-text{font-size:.85rem;color:#cbd5e1;line-height:1.6}
+.redline-box{background:rgba(10,15,30,0.8);border:1px solid var(--subtle);border-left:3px solid var(--accent);border-radius:0 .5rem .5rem 0;padding:1rem 1.25rem;font-size:.8rem;color:#a5f3fc;line-height:1.6;white-space:pre-wrap;word-break:break-word;box-shadow:inset 0 2px 10px rgba(0,0,0,0.2)}
+.actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.25rem}
+button{padding:.5rem 1rem;border-radius:.5rem;font-size:.78rem;font-weight:600;cursor:pointer;border:1px solid;transition:all .2s;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:.3rem}
+.btn-accept{background:linear-gradient(180deg, rgba(16,185,129,.15) 0%, rgba(16,185,129,.05) 100%);color:#34d399;border-color:rgba(16,185,129,.4)}
+.btn-accept:hover{background:rgba(16,185,129,.2);border-color:#34d399;box-shadow:0 0 15px rgba(16,185,129,.2)}
+.btn-reject{background:linear-gradient(180deg, rgba(239,68,68,.15) 0%, rgba(239,68,68,.05) 100%);color:#f87171;border-color:rgba(239,68,68,.4)}
+.btn-reject:hover{background:rgba(239,68,68,.2);border-color:#f87171;box-shadow:0 0 15px rgba(239,68,68,.2)}
+.btn-edit{background:linear-gradient(180deg, rgba(59,130,246,.15) 0%, rgba(59,130,246,.05) 100%);color:#60a5fa;border-color:rgba(59,130,246,.4)}
+.btn-edit:hover{background:rgba(59,130,246,.2);border-color:#60a5fa;box-shadow:0 0 15px rgba(59,130,246,.2)}
+.btn-plain{background:transparent;color:var(--muted);border-color:var(--subtle)}
+.btn-plain:hover{color:var(--text);border-color:var(--muted);background:rgba(255,255,255,0.05)}
+
+/* ── Compromise panel ── */
+.compromise-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:.5rem}
+.comp-option{background:#0a0f1e;border:1px solid var(--border);border-radius:.5rem;padding:.75rem}
+.comp-text{font-size:.75rem;color:#cbd5e1;line-height:1.4;margin-bottom:.6rem}
+.score-bars{display:flex;flex-direction:column;gap:.3rem}
+.score-row{display:flex;align-items:center;gap:.5rem;font-size:.65rem}
+.score-label{color:var(--muted);width:80px;flex-shrink:0}
+.score-bar-bg{flex:1;height:4px;background:var(--border);border-radius:2px}
+.score-bar-fill{height:100%;border-radius:2px;transition:width .4s ease}
+
+/* ── Audit drawer ── */
+.audit-drawer{border-top:1px solid var(--border)}
+.audit-toggle{display:flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--muted);user-select:none;background:var(--surface)}
+.audit-toggle:hover{color:var(--text)}
+.audit-toggle .chevron{transition:transform .2s;font-size:.7rem}
+.audit-toggle.open .chevron{transform:rotate(180deg)}
+.audit-body{display:none;max-height:220px;overflow-y:auto;padding:.75rem 1.5rem}
+.audit-body.open{display:block}
+.audit-row{display:grid;grid-template-columns:140px 80px 80px 1fr;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.7rem;color:#94a3b8;align-items:start}
+.audit-row:last-child{border:none}
+.audit-ts{color:var(--muted);font-family:monospace}
+.audit-badge{display:inline-block;padding:.1rem .4rem;border-radius:.25rem;font-size:.62rem;font-weight:700;background:var(--subtle)}
+.audit-reason{color:#cbd5e1;line-height:1.3}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:4rem 2rem;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%}
+.empty svg{width:48px;height:48px;margin-bottom:1rem;opacity:0.3}
+.empty h3{font-size:1.1rem;font-weight:600;margin-bottom:.5rem;color:#94a3b8}
+.empty p{font-size:.85rem;line-height:1.6}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;border:2px solid var(--surface)}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* ── Spinner ── */
+.spinner{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:2rem;right:2rem;background:var(--card);border:1px solid var(--accent);color:var(--text);padding:.8rem 1.25rem;border-radius:.5rem;font-size:.85rem;font-weight:500;box-shadow:0 10px 25px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,212,170,0.1);transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);z-index:999;display:flex;align-items:center;gap:.5rem}
+#toast.show{transform:translateY(0);opacity:1}
+
+@media(max-width:900px){
+  .app { height:auto; max-height:none; overflow:visible; }
+  main{grid-template-columns:1fr;grid-template-rows:auto auto auto;overflow:visible}
+  header{padding:1rem}
+  .stats-bar{padding:1rem}
+  .stat{min-width:45%;padding:.75rem}
+  
+  .risk-map-section{grid-column:1;grid-row:1;padding:1rem;min-height:300px;max-height:400px}
+  .sidebar{grid-column:1;grid-row:2;border-left:none;border-top:1px solid var(--border);max-height:none;box-shadow:none;height:500px}
+  .detail-panel{grid-column:1;grid-row:3;max-height:none;overflow:visible;padding:1rem}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Header -->
+<header>
+  <div class="logo">⚖ Compliance<span>Sentinel</span></div>
+  <div style="font-size:.75rem;color:var(--muted)">SaaS DPA · GDPR + CCPA/CPRA</div>
+  <div class="contract-selector">
+    <select id="contract-select"><option value="">Loading contracts…</option></select>
+    <select id="view-select">
+      <option value="buyer">Buyer View</option>
+      <option value="vendor">Vendor View</option>
+    </select>
+    <div id="risk-badge" class="risk-badge risk-med" style="display:none"></div>
+  </div>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar" id="stats-bar">
+  <div class="stat"><div class="stat-n c-blue" id="s-total">—</div><div class="stat-l">Findings</div></div>
+  <div class="stat"><div class="stat-n c-red"  id="s-red">—</div><div class="stat-l">🔴 High Risk</div></div>
+  <div class="stat"><div class="stat-n c-amber" id="s-amber">—</div><div class="stat-l">🟡 Medium</div></div>
+  <div class="stat"><div class="stat-n c-green" id="s-green">—</div><div class="stat-l">🟢 Compliant</div></div>
+  <div class="stat"><div class="stat-n c-blue" id="s-clauses">—</div><div class="stat-l">Clauses</div></div>
+</div>
+
+<!-- Main -->
+<main>
+
+  <!-- Risk Map -->
+  <section class="risk-map-section">
+    <div class="section-title">2D Risk Map — Likelihood × Impact</div>
+    <div id="risk-plot"></div>
+  </section>
+
+  <!-- Detail panel -->
+  <section class="detail-panel" id="detail-panel">
+    <div class="empty" id="detail-empty">
+      <h3>Select a clause</h3>
+      <p>Click any point on the risk map<br>or a clause card to view details.</p>
+    </div>
+    <div id="detail-content" style="display:none"></div>
+  </section>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-tabs">
+      <div class="stab active" id="tab-clauses" onclick="switchSideTab('clauses')">Clauses</div>
+      <div class="stab" id="tab-mediator" onclick="switchSideTab('mediator')">Mediator</div>
+    </div>
+    <div class="sidebar-body" id="side-clauses">
+      <div class="clause-cards" id="clause-list">
+        <div class="empty"><div class="spinner"></div><p>Loading…</p></div>
+      </div>
+    </div>
+    <div class="sidebar-body" id="side-mediator" style="display:none">
+      <div class="clause-cards" id="mediator-list">
+        <div class="empty"><h3>No mediation data</h3><p>Run the pipeline to generate compromise suggestions.</p></div>
+      </div>
+    </div>
+  </aside>
+
+</main>
+
+<!-- Audit Drawer -->
+<div class="audit-drawer">
+  <div class="audit-toggle" id="audit-toggle" onclick="toggleAudit()">
+    <span>🕐 Audit Trail</span>
+    <span id="audit-count" style="color:var(--accent);font-size:.7rem"></span>
+    <span style="margin-left:auto" class="chevron">▼</span>
+  </div>
+  <div class="audit-body" id="audit-body">
+    <div class="empty" id="audit-empty"><p>No audit records yet.</p></div>
+    <div id="audit-rows"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
