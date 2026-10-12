@@ -1,234 +1,343 @@
-<p align="center">
-  <img src="assets/icon.png" alt="Open Swarm" width="128" height="128">
-</p>
+# Open Swarm
 
-<h1 align="center">Open Swarm</h1>
+**Parallel AI Agent Orchestration. One Unified Workspace.**
+
+Open Swarm is a local-first desktop application for orchestrating multiple AI coding agents in parallel. It provides a unified environment for agent execution, human-in-the-loop approvals, conversation management, and isolated development workflows.
+
+Built for developers who need visibility, control, and coordination across concurrent AI-assisted tasks.
 
 <p align="center">
-  <strong>An Army of AI Agents at Your Fingertips</strong>
-  <br>
-  A locally-running orchestrator for managing multiple agents in parallel.
-  <br>
-  Launch, monitor, and coordinate entire swarms of coding agents from a single interface.
+  <img src="assets/icon.png" alt="Open Swarm" width="88" />
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-  <a href="#"><img src="https://img.shields.io/badge/platform-macOS-lightgrey.svg" alt="Platform"></a>
-  <a href="https://github.com/openswarm-ai/openswarm/stargazers"><img src="https://img.shields.io/github/stars/openswarm-ai/openswarm?style=social" alt="GitHub Stars"></a>
-  <a href="https://github.com/openswarm-ai/openswarm/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-2563EB?style=flat-square" alt="MIT License" /></a>
+  <img src="https://img.shields.io/badge/Platform-macOS-555555?style=flat-square" alt="macOS" />
+  <img src="https://img.shields.io/badge/Frontend-React%20%7C%20TypeScript-3178C6?style=flat-square" alt="React and TypeScript" />
+  <img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=flat-square" alt="FastAPI" />
+  <a href="https://github.com/openswarm-ai/openswarm/stargazers"><img src="https://img.shields.io/github/stars/openswarm-ai/openswarm?style=flat-square" alt="GitHub stars" /></a>
+  <a href="https://github.com/openswarm-ai/openswarm/pulls"><img src="https://img.shields.io/badge/Contributions-Welcome-16A34A?style=flat-square" alt="Contributions welcome" /></a>
 </p>
-
-<br>
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="Open Swarm Dashboard" width="900">
+  <a href="#key-capabilities">Capabilities</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#getting-started">Get started</a> ·
+  <a href="#contributing">Contributing</a>
 </p>
 
-<br>
+---
 
-## Why Open Swarm?
+## Overview
 
-Running agents in a terminal works fine for one task. But when you're juggling five agents across different branches, approving tool calls in separate windows, and losing track of who's doing what — it falls apart fast.
+As AI coding agents become capable of handling increasingly complex tasks, coordinating them effectively becomes a challenge of its own. Separate terminals, fragmented conversations, competing file changes, and scattered approval requests make parallel execution difficult to manage.
 
-- **Parallel agents, one screen** — Launch as many agents as you need, arranged on a spatial canvas you can pan and zoom freely
-- **Unified approval workflow** — Every tool-use request from every agent surfaces in one place. Approve or deny with a click or a keyboard shortcut.
-- **Full conversation control** — Edit prior messages to fork conversations, navigate between branches, resume closed sessions
-- **100% local** — Everything runs on your machine. No cloud relay, no telemetry, no third-party backend.
+Open Swarm brings these workflows into a single desktop environment.
 
-<br>
+The application combines a spatial workspace, real-time agent communication, centralized permission management, and Git worktree isolation to make multi-agent development more observable and manageable.
 
-## Features
+<p align="center">
+  <img src="assets/screenshot.png" alt="Open Swarm application dashboard" width="100%" />
+</p>
 
-**Spatial Dashboard** — Infinite canvas with drag-and-drop agent cards, view cards, and embedded browser cards. Create multiple dashboards for different workspaces.
+## Design principles
 
-**Agent Chat** — Full streaming chat interface powered by WebSockets. Real-time token output, cost tracking per session, and persistent history that survives restarts.
+| Principle | Implementation |
+|---|---|
+| Local-first | Run the application locally without a cloud relay or third-party application backend. |
+| Human oversight | Review tool requests and configure permission policies before agent actions proceed. |
+| Parallel execution | Coordinate multiple agents through a shared workspace. |
+| Workspace isolation | Use Git worktrees and separate branches for independent agent tasks. |
+| Operational visibility | Inspect agent conversations, pending approvals, code changes, and session costs. |
 
-**Human-in-the-Loop Approvals** — Agents request permission before executing tools. Approve or deny individually, or batch-approve from the dashboard. Configurable per-tool permissions (always allow, ask, deny).
+## Key capabilities
 
-**Message Branching** — Edit any prior message to fork the conversation. Navigate freely between branches without losing context.
+### Workspace orchestration
 
-**Prompt Templates** — Build reusable templates with structured input fields. Invoke them inline via `/` slash commands.
+A spatial canvas provides a unified view of concurrent work.
 
-**Skills Library** — Manage skills that sync directly to `~/.claude/skills/`. Browse and install from the official Anthropic skills marketplace.
+- Arrange agent cards, view cards, and embedded browser cards.
+- Navigate an expandable workspace with pan and zoom.
+- Maintain separate dashboards for different workspaces.
+- Monitor multiple agent sessions from one interface.
 
-**Tools Library** — Configure MCP tool servers (stdio, HTTP, SSE) with automatic tool discovery. Browse the MCP registry and Google's catalog with GitHub star counts. Includes Google Workspace OAuth integration.
+### Agent interaction and control
 
-**Agent Modes** — Five built-in modes (Agent, Ask, Plan, View Builder, Skill Builder) plus custom user-defined modes with configurable system prompts and tool restrictions.
+Manage agent conversations throughout the development lifecycle.
 
-**Views & Outputs** — Create interactive HTML/JS/CSS artifacts rendered in iframes. Supports vibe coding (LLM-generates the view), backend Python execution, auto-run with LLM-generated data, and agent-driven data gathering.
+- Stream responses in real time over WebSockets.
+- Persist conversation history across restarts.
+- Edit previous messages and navigate conversation branches.
+- Resume closed sessions.
+- Track costs per agent session.
 
-**Git Worktree Isolation** — Each agent operates in its own git worktree and branch, preventing conflicts between parallel workstreams.
+### Permission management
 
-**Diff Viewer** — Inspect uncommitted changes in any agent's worktree without leaving the app.
+Keep developers in control of agent tool execution.
 
-**Cost Tracking** — Real-time USD spend tracking per agent session.
+- Review approval requests in a centralized interface.
+- Approve or deny individual requests.
+- Batch-approve pending requests.
+- Configure per-tool policies: `Always Allow`, `Ask`, or `Deny`.
 
-**Dark & Light Themes** — Full theme support with design tokens.
+### Isolated development workflows
 
-**Keyboard Shortcuts** — Navigate between agents, approve/deny requests, and switch pages without touching a mouse.
+Support concurrent engineering tasks with independent Git worktrees.
 
-<br>
+- Maintain separate branches for individual agents.
+- Reduce interference between parallel workstreams.
+- Inspect uncommitted changes through the integrated diff viewer.
 
-## Quick Start
+### Extensible agent environment
 
-### Desktop App
+Configure reusable instructions, tools, and execution modes.
 
-Download the latest release for macOS from [GitHub Releases](https://github.com/openswarm-ai/openswarm/releases).
+| Component | Capabilities |
+|---|---|
+| Prompt templates | Structured inputs and `/` slash commands |
+| Skills library | Skill management and synchronization with `~/.claude/skills/` |
+| MCP integration | stdio, HTTP, and SSE transports; tool discovery |
+| Agent modes | Agent, Ask, Plan, View Builder, and Skill Builder |
+| Custom modes | Configurable system prompts and tool restrictions |
+| Interactive outputs | HTML, CSS, JavaScript, iframe rendering, and backend Python execution |
+| Workspace integrations | Google Workspace OAuth support |
 
-> Windows and Linux builds are planned but not yet available.
+### Developer experience
 
-### Development Setup
+- Dark and light themes with centralized design tokens.
+- Keyboard-driven navigation and approval workflows.
+- Persistent application settings.
+- Real-time USD cost tracking.
+- Interactive views and agent-generated outputs.
 
-**Prerequisites:** Python 3.11+, Node.js 18+, Git
+## Architecture
+
+Open Swarm separates the desktop shell, user interface, backend services, and agent integrations.
+
+```text
+┌──────────────────────────────────────────────────────────┐
+│                     Electron Shell                       │
+│             Desktop lifecycle and updates                │
+├───────────────────────────┬──────────────────────────────┤
+│         Frontend          │           Backend            │
+│                           │                              │
+│  React + TypeScript       │  FastAPI                     │
+│  Redux Toolkit            │  Agent Manager               │
+│  Spatial Dashboard        │  REST API                    │
+│  Agent Chat               │  WebSocket Services          │
+│  Templates & Skills       │  MCP Tool Discovery          │
+│  Modes & Interactive Views│  Persistent JSON Storage     │
+│                           │                              │
+└───────────────────────────┴──────────────────────────────┘
+                            │
+                 ┌──────────┴──────────┐
+                 │                     │
+          Agent SDK / MCP       Local Workspaces
+```
+
+### Frontend
+
+The frontend manages the interactive workspace, application state, and user-facing workflows.
+
+- React 18 and TypeScript
+- Redux Toolkit
+- Material UI v7
+- Framer Motion
+- CodeMirror 6
+- React Router v7
+- Webpack 5
+
+### Backend
+
+The backend provides application APIs, agent lifecycle management, and integration services.
+
+- FastAPI and Python
+- Pydantic v2
+- Anthropic SDK and `claude-agent-sdk`
+- REST APIs and WebSockets
+- HTTPX
+- MCP discovery and configuration
+- JSON-based persistence
+
+### Desktop runtime
+
+Electron provides the desktop application shell, with packaging and update support through the Electron ecosystem. The project also includes scripts for bundling a standalone Python runtime.
+
+## Getting started
+
+### Requirements
+
+| Dependency | Minimum version |
+|---|---|
+| Python | 3.11+ |
+| Node.js | 18+ |
+| Git | Installed and available in `PATH` |
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/openswarm-ai/openswarm.git
 cd openswarm
+```
+
+### 2. Launch the application
+
+```bash
 bash run.sh
 ```
 
-This starts the backend (port 8324), frontend (port 3000), and Electron shell together. Once running, set your Anthropic API key in the in-app Settings page.
+The startup script launches the backend, frontend, and Electron shell together.
 
-To run services individually:
+### 3. Access the services
+
+| Service | Address |
+|---|---|
+| Backend API | `http://localhost:8324` |
+| API documentation | `http://localhost:8324/docs` |
+| Frontend | `http://localhost:3000` |
+
+### 4. Configure credentials
+
+Open the application and navigate to **Settings** to configure your Anthropic API key.
+
+### Run services individually
+
+Backend:
 
 ```bash
-bash backend/run.sh     # API at http://localhost:8324 — docs at /docs
-bash frontend/run.sh    # App at http://localhost:3000
+bash backend/run.sh
 ```
 
-<br>
+Frontend:
 
-## Architecture
-
-```
-Electron Shell (desktop wrapper, auto-updater)
-├─────────────────────────────────────────────────────────────────────┐
-│                                                                     │
-│   Frontend (React/TypeScript :3000)       Backend (FastAPI :8324)   │
-│   ┌───────────────────────────────┐      ┌───────────────────────┐  │
-│   │  Spatial Dashboard Canvas     │◄────►│  REST API  (/api/*)   │  │
-│   │  Agent Chat (streaming)       │      │  WebSocket (/ws/*)    │  │
-│   │  Templates / Skills / Tools   │ WS   │  Agent Manager        │  │
-│   │  Modes / Views / Commands     │◄────►│    └─ claude-agent-sdk│  │
-│   │  Settings                     │      │  MCP Tool Discovery   │  │
-│   │  Redux Toolkit (state)        │      │  JSON File Storage    │  │
-│   └───────────────────────────────┘      └───────────────────────┘  │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
+```bash
+bash frontend/run.sh
 ```
 
-<br>
+### Desktop releases
+
+macOS builds are documented as available through the project's [GitHub Releases](https://github.com/openswarm-ai/openswarm/releases). Windows and Linux desktop builds are planned but are not yet available according to the current documentation.
 
 ## Configuration
 
-The Anthropic API key is configured in-app via the **Settings** page — no environment variable needed for normal usage.
+For normal application usage, configure the Anthropic API key through the in-app Settings page.
 
-For advanced configuration, copy `backend/.env.example` to `backend/.env`:
+For advanced configuration, create a local environment file:
+
+```bash
+cp backend/.env.example backend/.env
+```
 
 | Variable | Purpose |
-|----------|---------|
-| `BACKEND_PORT` | Backend server port (default: `8324`) |
-| `GOOGLE_OAUTH_CLIENT_ID` | Google Workspace integration (Gmail, Calendar, Drive) |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | Google Workspace integration |
-| `APPLE_ID` | macOS code signing & notarization (release builds only) |
-| `APPLE_APP_SPECIFIC_PASSWORD` | macOS notarization (release builds only) |
-| `APPLE_TEAM_ID` | macOS code signing (release builds only) |
-| `GH_TOKEN` | GitHub Releases publishing (release builds only) |
+|---|---|
+| `BACKEND_PORT` | Backend port; defaults to `8324` |
+| `GOOGLE_OAUTH_CLIENT_ID` | Google Workspace OAuth integration |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | Google Workspace OAuth integration |
+| `APPLE_ID` | macOS signing and notarization |
+| `APPLE_APP_SPECIFIC_PASSWORD` | macOS notarization |
+| `APPLE_TEAM_ID` | macOS code signing |
+| `GH_TOKEN` | GitHub Releases publishing |
 
-<br>
+Apple signing and publishing variables are relevant to release workflows. Never commit API keys, OAuth secrets, or populated environment files.
 
-## Keyboard Shortcuts
+## Keyboard shortcuts
 
-| Key | Action |
-|-----|--------|
-| `D` | Go to Dashboard |
-| `T` | Go to Templates |
-| `1` – `9` | Open agent by position |
-| `Shift+A` | Approve all pending requests |
-| `Shift+D` | Deny all pending requests |
-| `?` | Show shortcuts help |
+| Shortcut | Action |
+|---|---|
+| `D` | Open Dashboard |
+| `T` | Open Templates |
+| `1`–`9` | Open an agent by position |
+| `Shift + A` | Approve all pending requests |
+| `Shift + D` | Deny all pending requests |
+| `?` | Display keyboard shortcuts |
 
-Type `/` in the chat input to invoke prompt templates and skills as slash commands.
+Enter `/` in the chat input to access prompt templates and skills through slash commands.
 
-<br>
+## Repository structure
 
-## Project Structure
-
-```
-backend/
-  apps/
-    agents/           Agent lifecycle, streaming, worktree management
-    dashboards/       Dashboard CRUD and layout persistence
-    dashboard_layout/ Card positions and spatial canvas state
-    templates/        Prompt template CRUD
-    skills/           Skills CRUD (synced to ~/.claude/skills/)
-    tools_lib/        MCP tool configuration and discovery
-    modes/            Agent mode definitions
-    outputs/          Views/outputs, vibe coding, Python executor
-    settings/         App settings and file browser
-    health/           Health check endpoint
-    mcp_registry/     MCP server registry proxy
-    skill_registry/   Anthropic skills marketplace proxy
-  config/             FastAPI app configuration
-  data/               Persistent JSON file storage
-
-frontend/
-  src/
-    app/
-      components/     AppShell, Layout, shared UI
-      pages/
-        Dashboard/    Spatial canvas with agent/view/browser cards
-        AgentChat/    Streaming chat, HITL approvals, branching, diff viewer
-        Templates/    Template library with structured input fields
-        Skills/       Skills library, skill builder, registry browser
-        Tools/        Tool config, MCP discovery, OAuth, registry browser
-        Modes/        Mode definitions with system prompts
-        Views/        Output artifacts, code editor, vibe coding
-        Commands/     Keyboard shortcuts reference
-        Settings/     App configuration
-    shared/
-      state/          Redux slices (agents, dashboards, templates, skills, tools, modes, etc.)
-      ws/             WebSocket manager
-      hooks/          Custom hooks
-      styles/         Theme tokens, global styles
-
-electron/
-  main.js             Electron main process, auto-updater, Python env management
-  scripts/            Build and notarization scripts
-
-scripts/
-  build-app.sh        Desktop app packaging (electron-builder)
-  build-python-env.sh Standalone Python 3.13 environment bundler
+```text
+openswarm/
+├── backend/
+│   ├── apps/
+│   │   ├── agents/
+│   │   ├── dashboards/
+│   │   ├── dashboard_layout/
+│   │   ├── templates/
+│   │   ├── skills/
+│   │   ├── tools_lib/
+│   │   ├── modes/
+│   │   ├── outputs/
+│   │   ├── settings/
+│   │   ├── health/
+│   │   ├── mcp_registry/
+│   │   └── skill_registry/
+│   ├── config/
+│   └── data/
+├── frontend/
+│   └── src/
+│       ├── app/
+│       │   ├── components/
+│       │   └── pages/
+│       └── shared/
+│           ├── state/
+│           ├── ws/
+│           ├── hooks/
+│           └── styles/
+├── electron/
+│   ├── main.js
+│   └── scripts/
+├── scripts/
+├── assets/
+├── LICENSE
+└── README.md
 ```
 
-<br>
-
-## Tech Stack
-
-**Frontend** — React 18, TypeScript, Redux Toolkit, Material UI v7, CodeMirror 6, Framer Motion, React Router v7, Webpack 5
-
-**Backend** — FastAPI, Python 3.11+, Pydantic v2, claude-agent-sdk, Anthropic SDK, WebSockets, httpx
-
-**Desktop** — Electron 33, electron-builder, electron-updater (auto-updates via GitHub Releases)
-
-**Bundled Runtime** — Standalone Python 3.13 (via python-build-standalone) so end users don't need Python installed
-
-<br>
+| Directory | Responsibility |
+|---|---|
+| `backend/apps/agents/` | Agent lifecycle, streaming, and worktree management |
+| `backend/apps/dashboards/` | Dashboard CRUD and persistence |
+| `backend/apps/tools_lib/` | MCP tool configuration and discovery |
+| `backend/apps/outputs/` | Interactive outputs and Python execution |
+| `backend/data/` | Persistent JSON storage |
+| `frontend/src/app/` | Application components and pages |
+| `frontend/src/shared/` | State, WebSocket management, hooks, and styles |
+| `electron/` | Desktop main process and packaging scripts |
+| `scripts/` | Application and Python runtime build scripts |
 
 ## Contributing
 
-Contributions are welcome. To get started:
+Contributions that improve reliability, usability, performance, documentation, or extensibility are welcome.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Make your changes
-4. Submit a pull request
+### Development workflow
 
-Please open an issue first for larger changes so we can discuss the approach.
+1. Fork the repository.
+2. Create a feature branch.
+3. Implement and test your changes.
+4. Commit with a descriptive message.
+5. Open a pull request explaining the motivation, implementation, and relevant testing.
 
-<br>
+```bash
+git checkout -b feature/your-feature
+git add .
+git commit -m "feat: describe your change"
+git push origin feature/your-feature
+```
+
+For substantial changes, open an issue first to discuss the proposed approach.
+
+Useful starting points include documentation improvements, accessibility, test coverage, error handling, agent management, and developer onboarding.
+
+- [Report an issue](https://github.com/openswarm-ai/openswarm/issues)
+- [Review open pull requests](https://github.com/openswarm-ai/openswarm/pulls)
+- [Explore the repository](https://github.com/openswarm-ai/openswarm)
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+Open Swarm is licensed under the [MIT License](LICENSE).
+
+---
+
+<p align="center">
+  <strong>Open Swarm</strong><br />
+  One workspace. Multiple agents. Greater control.
+</p>
